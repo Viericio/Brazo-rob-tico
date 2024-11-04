@@ -1,0 +1,60 @@
+import time
+import board
+import pwmio
+
+# Configuración de PWM para cada servo en los pines de la Pico
+pwm_giro = pwmio.PWMOut(board.GP15, frequency=50)
+pwm_base = pwmio.PWMOut(board.GP14, frequency=50)
+pwm_codo = pwmio.PWMOut(board.GP13, frequency=50)
+pwm_pinza = pwmio.PWMOut(board.GP12, frequency=50)
+
+# Función para mover un servo a un ángulo específico
+def set_servo_angle(pwm, angle):
+    pulse_width = 500 + (angle / 180) * 2000  # Convierte el ángulo en ancho de pulso (en microsegundos)
+    duty_cycle = int(pulse_width / 20000 * 65535)
+    pwm.duty_cycle = duty_cycle
+
+# Ciclo infinito para mover los servos en secuencia de 0 a 180 grados
+while True:
+    for angle in range(0, 181, 5):  # Incremento de 5 grados para un movimiento más gradual
+        # Mueve cada servo con un desfase de tiempo
+        set_servo_angle(pwm_giro, angle)
+        print("Servo Giro en ángulo:", angle)
+        
+        time.sleep(0.05)  # Pausa para hacer que el ciclo total tome unos 5 segundos
+
+        # Desfase para iniciar cada servo con 2 segundos de diferencia
+        if angle >= 20:  # Inicia después de 2 segundos aprox.
+            set_servo_angle(pwm_base, angle)
+            print("Servo Base en ángulo:", angle)
+        
+        if angle >= 40:  # Inicia después de 4 segundos aprox.
+            set_servo_angle(pwm_codo, angle)
+            print("Servo Codo en ángulo:", angle)
+        
+        if angle >= 60:  # Inicia después de 6 segundos aprox.
+            set_servo_angle(pwm_pinza, angle)
+            print("Servo Pinza en ángulo:", angle)
+        
+        time.sleep(0.05)  # Control de la velocidad del movimiento
+
+    # Regresa los servos a 0 grados en orden inverso
+    for angle in range(180, -1, -5):
+        set_servo_angle(pwm_giro, angle)
+        print("Servo Giro en ángulo:", angle)
+        
+        time.sleep(0.05)
+
+        if angle <= 160:
+            set_servo_angle(pwm_base, angle)
+            print("Servo Base en ángulo:", angle)
+        
+        if angle <= 140:
+            set_servo_angle(pwm_codo, angle)
+            print("Servo Codo en ángulo:", angle)
+        
+        if angle <= 120:
+            set_servo_angle(pwm_pinza, angle)
+            print("Servo Pinza en ángulo:", angle)
+        
+        time.sleep(0.05)
